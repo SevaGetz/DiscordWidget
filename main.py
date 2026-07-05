@@ -99,7 +99,7 @@ def update_discord_widget() -> bool:
             "dynamic": [
                 { "type": 1, "name": "subtitle_1", "value": f"GitHub: {commits} Commits" },
                 { "type": 1, "name": "subtitle_2", "value": f"Anime: {anime_count} Titles" },
-                { "type": 1, "name": "subtitle_3", "value": f"Time: {anime_hours} Hours Watched" }
+                { "type": 1, "name": "subtitle_3", "value": f"Time: {anime_hours} Hours" }
             ]
         }
     }
