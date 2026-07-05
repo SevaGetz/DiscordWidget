@@ -32,7 +32,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 def get_github_commits() -> int:
     """Парсинг общего количества коммитов пользователя с GitHub API."""
-    url = f"https://api.github.com/{GITHUB_USERNAME}"
+    url = f"https://api.github.com/search/commits?q=author:{GITHUB_USERNAME}"
     headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": "DiscordBot (https://github.com/discord/discord-api-docs, 1.0.0)",
@@ -68,7 +68,7 @@ def update_discord_widget() -> bool:
     anime_count, anime_hours = get_mal_stats()
 
     # Ссылка из гайда для обновления конкретного профиля
-    url = f"https://discord.com/{APPLICATION_ID}/users/{USER_ID}/identities/0/profile"
+    url = f"https://discord.com/api/v9/applications/{APPLICATION_ID}/users/{USER_ID}/identities/0/profile"
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bot {DISCORD_TOKEN}",
