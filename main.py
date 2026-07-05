@@ -35,6 +35,7 @@ def get_github_commits() -> int:
     url = f"https://github.com/{GITHUB_USERNAME}"
     headers = {
         "Accept": "application/vnd.github+json",
+        "User-Agent": "DiscordBot (https://github.com/discord/discord-api-docs, 1.0.0)",
         "Authorization": f"Bearer {GITHUB_TOKEN}" if GITHUB_TOKEN else ""
     }
     try:
