@@ -66,7 +66,7 @@ def get_github_commits() -> int:
 
 def get_mal_stats() -> tuple[int, int]:
     """Парсинг количества просмотренных тайтлов и часов из MyAnimeList через Jikan API."""
-    url = f"https://jikan.moe/{MAL_USERNAME}/full"
+    url = f"https://api.jikan.moe/v4/users/{MAL_USERNAME}/full"
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
