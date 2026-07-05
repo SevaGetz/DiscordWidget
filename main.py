@@ -30,6 +30,23 @@ def read_root():
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+@bot.tree.command(name="setup_widget", description="Авторизовать приложение для работы виджета")
+async def setup_widget(interaction: discord.Interaction):
+    auth_url = (
+        "https://discord.com/oauth2/authorize"
+        f"?client_id={APPLICATION_ID}"
+        "&response_type=token"
+        "&scope=openid+sdk.social_layer"
+    )
+    view = discord.ui.View()
+    view.add_item(discord.ui.Button(label="Authorize", style=discord.ButtonStyle.link, url=auth_url))
+    await interaction.response.send_message(
+        "Нажми кнопку ниже и авторизуй приложение (можно сразу закрыть открывшуюся страницу после подтверждения). "
+        "После этого запусти `/refresh_widget`.",
+        view=view,
+        ephemeral=True
+    )
+
 def get_github_commits() -> int:
     """Парсинг общего количества коммитов пользователя с GitHub API."""
     url = f"https://api.github.com/search/commits?q=author:{GITHUB_USERNAME}"
