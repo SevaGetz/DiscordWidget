@@ -32,7 +32,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 def get_github_commits() -> int:
     """Парсинг общего количества коммитов пользователя с GitHub API."""
-    url = f"https://github.com/{GITHUB_USERNAME}"
+    url = f"https://api.github.com/{GITHUB_USERNAME}"
     headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": "DiscordBot (https://github.com/discord/discord-api-docs, 1.0.0)",
