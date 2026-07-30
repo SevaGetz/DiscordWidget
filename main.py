@@ -67,7 +67,7 @@ def get_github_commits() -> int:
 
 def get_mal_stats() -> tuple[int, int]:
     """Парсинг количества просмотренных тайтлов и часов напрямую из MyAnimeList."""
-    url = f"https://myanimelist.net{MAL_USERNAME}"
+    url = f"https://myanimelist.net/{MAL_USERNAME}"
     
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
