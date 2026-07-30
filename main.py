@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands, tasks
 from fastapi import FastAPI
 import uvicorn
+from bs4 import BeautifulSoup
 
 # Загрузка переменных окружения (для локального тестирования)
 load_dotenv()
@@ -65,18 +66,38 @@ def get_github_commits() -> int:
     return 0
 
 def get_mal_stats() -> tuple[int, int]:
-    """Парсинг количества просмотренных тайтлов и часов из MyAnimeList через Jikan API."""
-    url = f"https://api.jikan.moe/v4/users/{MAL_USERNAME}/full"
+    """Парсинг количества просмотренных тайтлов и часов напрямую из MyAnimeList."""
+    url = f"https://myanimelist.net{MAL_USERNAME}"
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10)
         if response.status_code == 200:
-            anime_stats = response.json().get("data", {}).get("statistics", {}).get("anime", {})
-            completed = anime_stats.get("completed", 0)
-            days_watched = anime_stats.get("days_watched", 0.0)
-            hours = int(days_watched * 24)  # Переводим дни в часы
-            return completed, hours
+            soup = BeautifulSoup(response.text, "html.parser")
+            
+            anime_section = soup.find("div", class_="stats anime")
+            if not anime_section:
+                logging.error("Anime stats section not found on the page")
+                return 0, 0
+                
+            stats = anime_section.find_all("span", class_="di-ib fl-r")
+            
+            if len(stats) >= 3:
+                try:
+                    days_watched = float(stats[0].text.strip().replace(",", ""))
+                    completed = int(stats[5].text.strip().replace(",", ""))
+                    
+                    hours = int(days_watched * 24)
+                    return completed, hours
+                except (ValueError, IndexError) as parse_err:
+                    logging.error(f"Failed to parse text stats: {parse_err}")
+                    
     except Exception as e:
         logging.error(f"Failed to fetch MAL stats: {e}")
+        
     return 0, 0
 
 def update_discord_widget() -> bool:
