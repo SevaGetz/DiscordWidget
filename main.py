@@ -7,7 +7,6 @@ import discord
 from discord.ext import commands, tasks
 from fastapi import FastAPI
 import uvicorn
-from bs4 import BeautifulSoup
 
 # Загрузка переменных окружения (для локального тестирования)
 load_dotenv()
@@ -64,39 +63,52 @@ def get_github_commits() -> int:
     except Exception as e:
         logging.error(f"Failed to fetch GitHub commits: {e}")
     return 0
-
+    
 def get_mal_stats() -> tuple[int, int]:
-    """Парсинг количества просмотренных тайтлов и часов напрямую из MyAnimeList."""
-    url = f"https://myanimelist.net/{MAL_USERNAME}"
+    """Получение точной статистики через внутренний JSON-эндпоинт MyAnimeList."""
+    url = f"https://myanimelist.net/animelist/{MAL_USERNAME}/load.json"
     
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "X-Requested-With": "XMLHttpRequest"
     }
     
+    params = {
+        "offset": 0,
+        "status": 2
+    }
+    
+    all_anime = []
+    
     try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, "html.parser")
+        while True:
+            response = requests.get(url, headers=headers, params=params, timeout=10)
             
-            anime_section = soup.find("div", class_="stats anime")
-            if not anime_section:
-                logging.error("Anime stats section not found on the page")
-                return 0, 0
+            if response.status_code != 200:
+                logging.error(f"MAL returned unexpected status: {response.status_code}")
+                break
                 
-            stats = anime_section.find_all("span", class_="di-ib fl-r")
+            data = response.json()
+            if not data:
+                break
+                
+            all_anime.extend(data)
+            params["offset"] += 300
             
-            if len(stats) >= 3:
-                try:
-                    days_watched = float(stats[0].text.strip().replace(",", ""))
-                    completed = int(stats[5].text.strip().replace(",", ""))
-                    
-                    hours = int(days_watched * 24)
-                    return completed, hours
-                except (ValueError, IndexError) as parse_err:
-                    logging.error(f"Failed to parse text stats: {parse_err}")
-                    
+        completed = len(all_anime)
+        total_episodes = 0
+        
+        for anime in all_anime:
+            total_episodes += anime.get("num_watched_episodes", 0)
+            
+        total_minutes = total_episodes * 24.5
+        hours = int(total_minutes // 60)
+        
+        return completed, hours
+        
     except Exception as e:
-        logging.error(f"Failed to fetch MAL stats: {e}")
+        logging.error(f"Failed to fetch MAL internal stats: {e}")
         
     return 0, 0
 
